@@ -1,14 +1,22 @@
-from django.conf import settings
-from datetime import datetime, timedelta, timezone
-import jwt
+from django.core.mail import EmailMessage
 
 
-def generate_access_token(user):
-	payload = {
-		'user_id': user.user_id,
-		'exp': datetime.now(tz=timezone.utc) + timedelta(days=1, minutes=0),
-		'iat': datetime.now(tz=timezone.utc)
-	}
+import threading
 
-	access_token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
-	return access_token
+
+class EmailThread(threading.Thread):
+
+    def __init__(self, email):
+        self.email = email
+        threading.Thread.__init__(self)
+
+    def run(self):
+        self.email.send()
+
+
+class Util:
+    @staticmethod
+    def send_email(data):
+        email = EmailMessage(
+            subject=data['email_subject'], body=data['email_body'], to=[data['to_email']])
+        EmailThread(email).start()
