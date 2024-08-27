@@ -2,7 +2,10 @@ from django.shortcuts import render
 from users.serializers import (
     UserRegistrationSerializer,
     UserLoginSerializer,
-    EmailVerificationSerializer
+    EmailVerificationSerializer,
+    DoctorProfileSerializer,
+    PatientProfileSerializer,
+    ReceptionistProfileSerializer,  
 )
 from rest_framework.views import APIView
 from rest_framework import views
@@ -20,6 +23,7 @@ from drf_yasg.utils import swagger_auto_schema
 from django.contrib.sites.shortcuts import get_current_site
 from rest_framework_simplejwt.tokens import RefreshToken
 from .utils import Util
+from django.core.mail import send_mail
 import jwt
 
 User = get_user_model()
@@ -48,9 +52,9 @@ class UserRegistrationAPIView(APIView):
                 relativeLink = reverse('email-verify')
                 absurl = 'http://' + str(current_site) + relativeLink + "?token=" + str(refresh)
                 email_body = 'Hi ' + new_user.username + ' Use the link below to verify your email \n' + absurl
-                data = {'email_body': email_body, 'to_email': new_user.email, 'email_subject': 'Verify your email'}
+                
+                send_mail('Verify your email', email_body, "from@example.com", [new_user.email])
 
-                Util.send_email(data)
                 response = Response(data, status=status.HTTP_201_CREATED)
                 response.set_cookie(key='refresh_token', value=str(refresh), httponly=True)
                 response.set_cookie(key='access_token', value=str(refresh.access_token), httponly=True)
@@ -113,13 +117,12 @@ class UserLoginAPIView(APIView):
             'message': 'Something went wrong.'
         })
 
-class UserViewAPI(APIView):
+class UserProfileView(APIView):
     authentication_classes = [TokenAuthentication]
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         access_token = request.COOKIES.get('access_token')
-        print(access_token)
 
         if not access_token:
             raise AuthenticationFailed('Unauthenticated user.')
@@ -132,8 +135,20 @@ class UserViewAPI(APIView):
 
         user_model = get_user_model()
         user = user_model.objects.filter(pk=user_pk).first()
-        user_serializer = UserRegistrationSerializer(user)
-        return Response(user_serializer.data)
+
+        if user.role == 'doctor':
+            profile = user.doctor_profile
+            serializer = DoctorProfileSerializer(profile)
+        elif user.role == 'patient':
+            profile = user.patient_profile
+            serializer = PatientProfileSerializer(profile)
+        elif user.role == 'receptionist':
+            profile = user.receptionist_profile
+            serializer = ReceptionistProfileSerializer(profile)
+        else:
+            raise AuthenticationFailed('Invalid user role.')
+
+        return Response(serializer.data)
 
 # class UserLogoutViewAPI(APIView):
 #     authentication_classes = [TokenAuthentication]

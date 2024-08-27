@@ -29,3 +29,35 @@ class EmailVerificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
         fields = ['token']
+
+from rest_framework import serializers
+from .models import DoctorProfile, PatientProfile, ReceptionistProfile, User
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'first_name', 'middle_name', 'last_name', 
+                  'gender', 'date_of_birth', 'phone_number', 'address', 
+                    'emergency_contact_name', 'emergency_contact_number', 'role']
+
+class DoctorProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+
+    class Meta:
+        model = DoctorProfile
+        fields = ['user', 'specialization', 'bio', 'profile_picture', 
+                  'experience', 'qualification']
+
+class PatientProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+
+    class Meta:
+        model = PatientProfile
+        fields = ['user', 'medical_history', 'allergies']
+
+class ReceptionistProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+
+    class Meta:
+        model = ReceptionistProfile
+        fields = ['user']
