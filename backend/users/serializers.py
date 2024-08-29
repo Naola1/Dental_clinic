@@ -1,19 +1,34 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
+User = get_user_model()
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
-	password = serializers.CharField(max_length=100, min_length=6, style={'input_type': 'password'})
-	class Meta:
-		model = get_user_model()
-		fields = ['email', 'username', 'password']
+    password = serializers.CharField(max_length=100, min_length=6, write_only=True)
 
-	def create(self, validated_data):
-		password = validated_data.get('password', None)
-		user = self.Meta.model(email=validated_data.get('email'), username=validated_data.get('username'))
-		user.set_password(password)
-		user.save()
-		return user
+    class Meta:
+        model = User
+        fields = ['email', 'username', 'password', 'role']  # Include role if needed
+
+    def create(self, validated_data):
+        # Default role handling
+        role = validated_data.get('role', 'patient')  # Default to 'patient'
+        user = self.Meta.model(
+            email=validated_data['email'],
+            username=validated_data['username'],
+            role=role
+        )
+        user.set_password(validated_data['password'])
+        user.save()
+       
+        if role == 'patient':
+            PatientProfile.objects.create(user=user)
+        elif role == 'doctor':
+            DoctorProfile.objects.create(user=user)
+        elif role == 'receptionist':
+            ReceptionistProfile.objects.create(user=user) 
+        return user
+       
 
 
 

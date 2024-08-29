@@ -22,45 +22,49 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from django.contrib.sites.shortcuts import get_current_site
 from rest_framework_simplejwt.tokens import RefreshToken
-from .utils import Util
+#from .utils import Util
 from django.core.mail import send_mail
+from rest_framework_simplejwt.authentication import JWTAuthentication
 import jwt
 
 User = get_user_model()
 
 class UserRegistrationAPIView(APIView):
     serializer_class = UserRegistrationSerializer
-    authentication_classes = [TokenAuthentication]
     permission_classes = [AllowAny]
 
-    def get(self, request):
-        content = {'message': 'Hello!'}
-        return Response(content)
-
     def post(self, request):
+        # Set role to 'patient' by default
+        data = request.data.copy()
+        data['role'] = 'patient'  # Default role
+        
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid(raise_exception=True):
             new_user = serializer.save()
 
             if new_user:
                 refresh = RefreshToken.for_user(new_user)
-                data = {
-                    'refresh': str(refresh),
-                    'access': str(refresh.access_token),
-                }
-                current_site = get_current_site(request)
-                relativeLink = reverse('email-verify')
-                absurl = 'http://' + str(current_site) + relativeLink + "?token=" + str(refresh)
-                email_body = 'Hi ' + new_user.username + ' Use the link below to verify your email \n' + absurl
+                access_token = str(refresh.access_token)
                 
-                send_mail('Verify your email', email_body, "from@example.com", [new_user.email])
+                response = Response({
+                    'message':'User Registered seccessfully',
+                    'user_id':new_user.id,
+                    'email':new_user.email,
+                    "token": access_token  
+                }, status=status.HTTP_201_CREATED)
 
-                response = Response(data, status=status.HTTP_201_CREATED)
-                response.set_cookie(key='refresh_token', value=str(refresh), httponly=True)
-                response.set_cookie(key='access_token', value=str(refresh.access_token), httponly=True)
+                # current_site = get_current_site(request)
+                # relativeLink = reverse('email-verify')
+                # absurl = 'http://' + str(current_site) + relativeLink + "?token=" + str(refresh)
+                # email_body = 'Hi ' + new_user.username + ' Use the link below to verify your email \n' + absurl
+                
+                # send_mail('Verify your email', email_body, "from@example.com", [new_user.email])
+
+                # response = Response(data, status=status.HTTP_201_CREATED)
+                
                 return response
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+    
 class VerifyEmail(views.APIView):
     serializer_class = EmailVerificationSerializer
 
@@ -84,71 +88,63 @@ class VerifyEmail(views.APIView):
 
 class UserLoginAPIView(APIView):
     serializer_class = UserLoginSerializer
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [AllowAny]
+    permission_classes = [AllowAny]  # Allow anyone to access this view
 
     def post(self, request):
-        email = request.data.get('email', None)
-        password = request.data.get('password', None)
+        email = request.data.get('email')
+        password = request.data.get('password')
 
-        if not password:
-            raise AuthenticationFailed('A user password is needed.')
-
-        if not email:
-            raise AuthenticationFailed('A user email is needed.')
+        if not email or not password:
+            return Response({'error': 'Email and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
         user = authenticate(username=email, password=password)
 
-        if not user:
-            raise AuthenticationFailed('User not found.')
-
-        if user.is_active:
+        if user is not None:
+            # User is authenticated
             refresh = RefreshToken.for_user(user)
-            data = {
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-            }
-            response = Response(data)
-            response.set_cookie(key='refresh_token', value=str(refresh), httponly=True)
-            response.set_cookie(key='access_token', value=str(refresh.access_token), httponly=True)
-            return response
+            access_token = str(refresh.access_token)
 
-        return Response({
-            'message': 'Something went wrong.'
-        })
+            return Response({
+                'message': 'Login successful',
+                'user_id': user.id,
+                'email': user.email,
+                'access_token': access_token,
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
 
 class UserProfileView(APIView):
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]  # Use JWTAuthentication
+    permission_classes = [IsAuthenticated]  # Ensure user must be authenticated
 
     def get(self, request):
-        access_token = request.COOKIES.get('access_token')
+        # No need to manually parse the token, JWTAuthentication will handle it
+        user = request.user  # This will give you the authenticated user
+        print('user', user)
 
-        if not access_token:
-            raise AuthenticationFailed('Unauthenticated user.')
-
-        try:
-            payload = jwt.decode(access_token, settings.SECRET_KEY, algorithms=['HS256'])
-            user_pk = payload['user_id']
-        except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
-            raise AuthenticationFailed('Invalid token.')
-
-        user_model = get_user_model()
-        user = user_model.objects.filter(pk=user_pk).first()
+        if not user.is_authenticated:
+            raise AuthenticationFailed('User is not authenticated.')
 
         if user.role == 'doctor':
+            print("he is a doctor")
             profile = user.doctor_profile
             serializer = DoctorProfileSerializer(profile)
         elif user.role == 'patient':
+            print("he is a patient")
             profile = user.patient_profile
             serializer = PatientProfileSerializer(profile)
         elif user.role == 'receptionist':
+            print("he is a doctor")
             profile = user.receptionist_profile
             serializer = ReceptionistProfileSerializer(profile)
         else:
             raise AuthenticationFailed('Invalid user role.')
 
         return Response(serializer.data)
+
+    
 
 # class UserLogoutViewAPI(APIView):
 #     authentication_classes = [TokenAuthentication]

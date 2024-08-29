@@ -68,6 +68,25 @@ class User(AbstractBaseUser, PermissionsMixin):
             today = timezone.now().date()
             return today.year - self.date_of_birth.year - ((today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day))
         return None
+    
+    def save(self, *args, **kwargs):
+        # Get the current instance of the user (if it exists) before saving
+        old_user = User.objects.filter(id=self.id).first()
+        super(User, self).save(*args, **kwargs)  # Save the user first
+
+        # Check if the role has changed or if this is a new user
+        if old_user and old_user.role != self.role:
+            # If the user was a patient and their role is now doctor, create the DoctorProfile
+            if self.role == 'doctor' and not hasattr(self, 'doctor_profile'):
+                DoctorProfile.objects.create(user=self)
+
+            # If the user was a doctor and their role is now patient, create the PatientProfile
+            elif self.role == 'patient' and not hasattr(self, 'patient_profile'):
+                PatientProfile.objects.create(user=self)
+
+            # If the user was a doctor or patient and now their role is receptionist
+            elif self.role == 'receptionist' and not hasattr(self, 'receptionist_profile'):
+                ReceptionistProfile.objects.create(user=self)    
 
 class DoctorProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='doctor_profile')

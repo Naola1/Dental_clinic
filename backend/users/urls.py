@@ -4,14 +4,20 @@ from users.views import (
 	UserLoginAPIView,
 	UserProfileView,
 	#UserLogoutViewAPI,
-    VerifyEmail,
+    #VerifyEmail,
+)
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+    TokenVerifyView
 )
 
-
 urlpatterns = [
+    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 	path('user/register/', UserRegistrationAPIView.as_view()),
 	path('user/login/', UserLoginAPIView.as_view()),
-	path('user/', UserProfileView.as_view()),
+	path('user/profile/', UserProfileView.as_view(), name='user-profile'),
 	#path('user/logout/', UserLogoutViewAPI.as_view()),
-     path('email-verify/', VerifyEmail.as_view(), name="email-verify"),
+    #path('email-verify/', VerifyEmail.as_view(), name="email-verify"),
 ]
