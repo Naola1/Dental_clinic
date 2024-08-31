@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils import timezone
-from users.models import User
+from users.models import User, DoctorProfile
 from treatment.models import Treatment
 
 # Appointment model to schedule meetings between patients and doctors
@@ -12,13 +12,13 @@ class Appointment(models.Model):
         ('Canceled', 'Canceled'),
     ]
     patient = models.ForeignKey(User, on_delete=models.CASCADE, related_name="appointments_as_patient")
-    doctor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="appointments_as_doctor")
+    doctor = models.ForeignKey(DoctorProfile, on_delete=models.CASCADE, related_name="appointments") 
     appointment_date = models.DateTimeField()
     status = models.CharField(max_length=20, choices=APPOINTMENT_STATUS_CHOICES, default='Scheduled')
     treatment = models.ForeignKey(Treatment, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
-        return f"Appointment with Dr. {self.doctor.doctor_profile.specialization} on {self.appointment_date}"
+        return f"Appointment with Dr. {self.doctor.user.first_name} {self.doctor.user.last_name} - {self.doctor.specialization} on {self.appointment_date}"
     
     def is_upcoming(self):
         return self.appointment_date > timezone.now() and self.status == 'Scheduled'
@@ -40,6 +40,7 @@ class Availability(models.Model):
     day_of_week = models.CharField(max_length=10, choices=DAY_OF_WEEK_CHOICES)
     start_time = models.TimeField()
     end_time = models.TimeField()
+    max_patients = models.PositiveIntegerField(default=10)
 
     def __str__(self):
         return f"{self.doctor.user.last_name}'s availability on {self.day_of_week} from {self.start_time} to {self.end_time}"

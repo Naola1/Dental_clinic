@@ -15,8 +15,9 @@ class DoctorProfileSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'specialization']
 
 class AppointmentSerializer(serializers.ModelSerializer):
-    patient = serializers.PrimaryKeyRelatedField(queryset=User.objects.filter(role='patient'), required=False)
-    doctor = serializers.PrimaryKeyRelatedField(queryset=User.objects.filter(role='doctor'), required=False)
+    patient = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    doctor = serializers.PrimaryKeyRelatedField(queryset=DoctorProfile.objects.all())
+
 
     class Meta:
         model = Appointment
