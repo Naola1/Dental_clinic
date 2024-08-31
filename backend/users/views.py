@@ -34,9 +34,9 @@ class UserRegistrationAPIView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        # Set role to 'patient' by default
+        
         data = request.data.copy()
-        data['role'] = 'patient'  # Default role
+        data['role'] = 'patient' 
         
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid(raise_exception=True):
@@ -88,7 +88,7 @@ class VerifyEmail(views.APIView):
 
 class UserLoginAPIView(APIView):
     serializer_class = UserLoginSerializer
-    permission_classes = [AllowAny]  # Allow anyone to access this view
+    permission_classes = [AllowAny] 
 
     def post(self, request):
         email = request.data.get('email')
@@ -116,34 +116,51 @@ class UserLoginAPIView(APIView):
 
 
 class UserProfileView(APIView):
-    authentication_classes = [JWTAuthentication]  # Use JWTAuthentication
-    permission_classes = [IsAuthenticated]  # Ensure user must be authenticated
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # No need to manually parse the token, JWTAuthentication will handle it
-        user = request.user  # This will give you the authenticated user
-        print('user', user)
-
-        if not user.is_authenticated:
-            raise AuthenticationFailed('User is not authenticated.')
-
+        user = request.user
+        
         if user.role == 'doctor':
-            print("he is a doctor")
             profile = user.doctor_profile
             serializer = DoctorProfileSerializer(profile)
         elif user.role == 'patient':
-            print("he is a patient")
             profile = user.patient_profile
             serializer = PatientProfileSerializer(profile)
         elif user.role == 'receptionist':
-            print("he is a doctor")
             profile = user.receptionist_profile
             serializer = ReceptionistProfileSerializer(profile)
         else:
-            raise AuthenticationFailed('Invalid user role.')
+            return Response({'error': 'Invalid user role.'}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(serializer.data)
 
+    def put(self, request):
+        user = request.user
+        
+        if user.role == 'doctor':
+            profile = user.doctor_profile
+            serializer = DoctorProfileSerializer(profile, data=request.data, partial=True)
+        elif user.role == 'patient':
+            profile = user.patient_profile
+            serializer = PatientProfileSerializer(profile, data=request.data, partial=True)
+        elif user.role == 'receptionist':
+            profile = user.receptionist_profile
+            serializer = ReceptionistProfileSerializer(profile, data=request.data, partial=True)
+        else:
+            return Response({'error': 'Invalid user role.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    
+    def destroy(self, request):
+        user = request.user
+        user.delete()
+        return Response({"message": "User account deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
     
 
 # class UserLogoutViewAPI(APIView):
@@ -177,3 +194,5 @@ class UserProfileView(APIView):
 #             'message': 'User is already logged out.'
 #         }
 #         return response
+
+

@@ -1,0 +1,48 @@
+from django.db import models
+from django.utils import timezone
+from users.models import User
+from treatment.models import Treatment
+
+# Appointment model to schedule meetings between patients and doctors
+class Appointment(models.Model):
+    # Constants for choices
+    APPOINTMENT_STATUS_CHOICES = [
+        ('Scheduled', 'Scheduled'),
+        ('Completed', 'Completed'),
+        ('Canceled', 'Canceled'),
+    ]
+    patient = models.ForeignKey(User, on_delete=models.CASCADE, related_name="appointments_as_patient")
+    doctor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="appointments_as_doctor")
+    appointment_date = models.DateTimeField()
+    status = models.CharField(max_length=20, choices=APPOINTMENT_STATUS_CHOICES, default='Scheduled')
+    treatment = models.ForeignKey(Treatment, on_delete=models.SET_NULL, null=True)
+
+    def __str__(self):
+        return f"Appointment with Dr. {self.doctor.doctor_profile.specialization} on {self.appointment_date}"
+    
+    def is_upcoming(self):
+        return self.appointment_date > timezone.now() and self.status == 'Scheduled'
+    
+
+# Availability model to manage doctor's availability
+class Availability(models.Model):
+    # Constants for choices
+    DAY_OF_WEEK_CHOICES = [
+        ('Monday', 'Monday'),
+        ('Tuesday', 'Tuesday'),
+        ('Wednesday', 'Wednesday'),
+        ('Thursday', 'Thursday'),
+        ('Friday', 'Friday'),
+        ('Saturday', 'Saturday'),
+        ('Sunday', 'Sunday'),
+    ]
+    doctor = models.ForeignKey('users.DoctorProfile', on_delete=models.CASCADE, related_name="availabilities")
+    day_of_week = models.CharField(max_length=10, choices=DAY_OF_WEEK_CHOICES)
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+
+    def __str__(self):
+        return f"{self.doctor.user.last_name}'s availability on {self.day_of_week} from {self.start_time} to {self.end_time}"
+    
+    class Meta:
+        ordering = ['day_of_week', 'start_time']

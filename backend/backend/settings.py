@@ -39,7 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
+    'rest_framework_simplejwt',
+    'django_filters',
     'users',
+    'treatment',
+    'appointment'
 ]
 
 AUTH_USER_MODEL = 'users.User'

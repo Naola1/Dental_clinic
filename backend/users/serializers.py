@@ -8,7 +8,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['email', 'username', 'password', 'role']  # Include role if needed
+        fields = ['email', 'username', 'password', 'role']  
 
     def create(self, validated_data):
         # Default role handling
@@ -29,9 +29,6 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             ReceptionistProfile.objects.create(user=user) 
         return user
        
-
-
-
 class UserLoginSerializer(serializers.Serializer):
 	email = serializers.CharField(max_length=100)
 	username = serializers.CharField(max_length=100, read_only=True)
@@ -53,7 +50,15 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['username', 'email', 'first_name', 'middle_name', 'last_name', 
                   'gender', 'date_of_birth', 'phone_number', 'address', 
-                    'emergency_contact_name', 'emergency_contact_number', 'role']
+                  'emergency_contact_name', 'emergency_contact_number', 'role']
+        read_only_fields = ['email', 'username']  
+
+    def update(self, instance, validated_data):
+        # Update user fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
 
 class DoctorProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer()
@@ -63,6 +68,17 @@ class DoctorProfileSerializer(serializers.ModelSerializer):
         fields = ['user', 'specialization', 'bio', 'profile_picture', 
                   'experience', 'qualification']
 
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user', {})
+        user_serializer = UserSerializer(instance.user, data=user_data, partial=True)
+        user_serializer.is_valid(raise_exception=True)
+        user_serializer.save()
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
+
 class PatientProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer()
 
@@ -70,9 +86,31 @@ class PatientProfileSerializer(serializers.ModelSerializer):
         model = PatientProfile
         fields = ['user', 'medical_history', 'allergies']
 
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user', {})
+        user_serializer = UserSerializer(instance.user, data=user_data, partial=True)
+        user_serializer.is_valid(raise_exception=True)
+        user_serializer.save()
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
+
 class ReceptionistProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer()
 
     class Meta:
         model = ReceptionistProfile
         fields = ['user']
+
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user', {})
+        user_serializer = UserSerializer(instance.user, data=user_data, partial=True)
+        user_serializer.is_valid(raise_exception=True)
+        user_serializer.save()
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
