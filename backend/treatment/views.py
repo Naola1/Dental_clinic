@@ -34,7 +34,7 @@ class DoctorTreatmentHistoryView(generics.ListCreateAPIView):
         return TreatmentHistory.objects.filter(doctor=user)
 
     def perform_create(self, serializer):
-        # The doctor is automatically assigned in the serializer
+        
         serializer.save()
 
 class DoctorTreatmentHistoryDetailView(generics.RetrieveUpdateDestroyAPIView):

@@ -11,8 +11,8 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         fields = ['email', 'username', 'password', 'role']  
 
     def create(self, validated_data):
-        # Default role handling
-        role = validated_data.get('role', 'patient')  # Default to 'patient'
+        
+        role = validated_data.get('role', 'patient')  
         user = self.Meta.model(
             email=validated_data['email'],
             username=validated_data['username'],
@@ -54,7 +54,7 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ['email', 'username']  
 
     def update(self, instance, validated_data):
-        # Update user fields
+        
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()

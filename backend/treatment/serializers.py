@@ -39,4 +39,3 @@ class TreatmentHistoryReceptionistSerializer(serializers.ModelSerializer):
     class Meta:
         model = TreatmentHistory
         fields = ['id', 'patient', 'doctor', 'treatment', 'treatment_date', 'follow_up_date']
-        # Note: 'description' is excluded for patient privacy

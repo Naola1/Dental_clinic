@@ -70,21 +70,16 @@ class User(AbstractBaseUser, PermissionsMixin):
         return None
     
     def save(self, *args, **kwargs):
-        # Get the current instance of the user (if it exists) before saving
         old_user = User.objects.filter(id=self.id).first()
-        super(User, self).save(*args, **kwargs)  # Save the user first
+        super(User, self).save(*args, **kwargs) 
 
-        # Check if the role has changed or if this is a new user
         if old_user and old_user.role != self.role:
-            # If the user was a patient and their role is now doctor, create the DoctorProfile
             if self.role == 'doctor' and not hasattr(self, 'doctor_profile'):
                 DoctorProfile.objects.create(user=self)
 
-            # If the user was a doctor and their role is now patient, create the PatientProfile
             elif self.role == 'patient' and not hasattr(self, 'patient_profile'):
                 PatientProfile.objects.create(user=self)
 
-            # If the user was a doctor or patient and now their role is receptionist
             elif self.role == 'receptionist' and not hasattr(self, 'receptionist_profile'):
                 ReceptionistProfile.objects.create(user=self)    
 
@@ -93,8 +88,8 @@ class DoctorProfile(models.Model):
     specialization = models.CharField(max_length=100)
     bio = models.TextField(blank=True)
     profile_picture = models.ImageField(upload_to='doctor_pics/', blank=True)
-    experience = models.PositiveIntegerField(default=0)  # Years of experience
-    qualification = models.CharField(max_length=255, blank=True)  # Example: "MBBS, MD (Internal Medicine)"
+    experience = models.PositiveIntegerField(default=0)  
+    qualification = models.CharField(max_length=255, blank=True)  
 
     def __str__(self):
         return f"Dr. {self.user.first_name} {self.user.middle_name} - {self.specialization}"

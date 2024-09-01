@@ -12,10 +12,8 @@ from datetime import datetime
 
 class IsDoctorOrReceptionistOrReadOnly(BasePermission):
     def has_permission(self, request, view):
-        # Patients have read-only access
         if request.user.role == 'patient' and request.method in ['GET']:
             return True
-        # Doctors and receptionists have full access
         elif request.user.role in ['doctor', 'receptionist']:
             return True
         return False
@@ -36,7 +34,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             return Appointment.objects.all()
         elif user.role == 'doctor':
             return Appointment.objects.filter(doctor=user)
-        else:  # Patient
+        else:  
             return Appointment.objects.filter(patient=user)
 
     def create(self, request, *args, **kwargs):
@@ -135,7 +133,7 @@ class AppointmentBookingViewSet(viewsets.ViewSet):
         try:
             doctor = DoctorProfile.objects.get(pk=pk)
             appointment_date_str = request.data.get('appointment_date')
-            # Parse date from string
+            
             try:
                appointment_date = datetime.strptime(appointment_date_str, '%Y-%m-%d %H:%M:%S')
                print(appointment_date)
@@ -151,7 +149,7 @@ class AppointmentBookingViewSet(viewsets.ViewSet):
             ).first()
 
             if availability:
-            # Count existing appointments for that day
+            
                 appointment_count = Appointment.objects.filter(
                 doctor=doctor,
                 appointment_date__date=appointment_date.date()

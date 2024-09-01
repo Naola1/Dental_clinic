@@ -3,9 +3,7 @@ from django.utils import timezone
 from users.models import User, DoctorProfile
 from treatment.models import Treatment
 
-# Appointment model to schedule meetings between patients and doctors
 class Appointment(models.Model):
-    # Constants for choices
     APPOINTMENT_STATUS_CHOICES = [
         ('Scheduled', 'Scheduled'),
         ('Completed', 'Completed'),
@@ -24,9 +22,7 @@ class Appointment(models.Model):
         return self.appointment_date > timezone.now() and self.status == 'Scheduled'
     
 
-# Availability model to manage doctor's availability
 class Availability(models.Model):
-    # Constants for choices
     DAY_OF_WEEK_CHOICES = [
         ('Monday', 'Monday'),
         ('Tuesday', 'Tuesday'),

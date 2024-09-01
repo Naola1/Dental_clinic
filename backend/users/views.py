@@ -100,7 +100,7 @@ class UserLoginAPIView(APIView):
         user = authenticate(username=email, password=password)
 
         if user is not None:
-            # User is authenticated
+            
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
 
