@@ -108,6 +108,7 @@ class UserLoginAPIView(APIView):
                 'message': 'Login successful',
                 'user_id': user.id,
                 'email': user.email,
+                'role': user.role,
                 'access_token': access_token,
             }, status=status.HTTP_200_OK)
         else:
