@@ -26,6 +26,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.mail import send_mail
 from rest_framework_simplejwt.authentication import JWTAuthentication
 import jwt
+from .models import DoctorProfile
+from rest_framework.generics import ListAPIView, RetrieveAPIView
 
 User = get_user_model()
 
@@ -197,3 +199,15 @@ class UserProfileView(APIView):
 #         return response
 
 
+class DoctorListAPIView(ListAPIView):
+    queryset = DoctorProfile.objects.all()
+    serializer_class = DoctorProfileSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+class DoctorDetailAPIView(RetrieveAPIView):
+    queryset = DoctorProfile.objects.all()
+    serializer_class = DoctorProfileSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'id'

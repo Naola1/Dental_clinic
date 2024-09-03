@@ -86,23 +86,25 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'lilydb',
-        'USER': 'lilydb_user',
-        'PASSWORD': 'rfjA6hwbjVLhF0MnHAMQ8I3qVDqpbwbS',
-        'HOST': 'dpg-crbfbk3v2p9s73dganqg-a.oregon-postgres.render.com',
-        'PORT': '5432',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# DON'T FORGET
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'lilydb',
+#         'USER': 'lilydb_user',
+#         'PASSWORD': 'rfjA6hwbjVLhF0MnHAMQ8I3qVDqpbwbS',
+#         'HOST': 'dpg-crbfbk3v2p9s73dganqg-a.oregon-postgres.render.com',
+#         'PORT': '5432',
+#     }
+# }
 
 
 # Password validation
