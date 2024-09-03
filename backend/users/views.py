@@ -28,6 +28,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 import jwt
 from .models import DoctorProfile
 from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.pagination import PageNumberPagination
 
 User = get_user_model()
 
@@ -197,13 +198,17 @@ class UserProfileView(APIView):
 #             'message': 'User is already logged out.'
 #         }
 #         return response
-
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
 
 class DoctorListAPIView(ListAPIView):
     queryset = DoctorProfile.objects.all()
     serializer_class = DoctorProfileSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
 
 class DoctorDetailAPIView(RetrieveAPIView):
     queryset = DoctorProfile.objects.all()

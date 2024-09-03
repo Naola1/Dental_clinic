@@ -10,11 +10,19 @@ from .serializers import (
 from django.db.models import Q
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.pagination import PageNumberPagination
+
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
 
 class PatientTreatmentHistoryView(generics.ListAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = TreatmentHistorySerializer
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         user = self.request.user
@@ -23,6 +31,7 @@ class PatientTreatmentHistoryView(generics.ListAPIView):
 class DoctorTreatmentHistoryView(generics.ListCreateAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -50,6 +59,7 @@ class ReceptionistTreatmentHistoryView(generics.ListAPIView):
     serializer_class = TreatmentHistoryReceptionistSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         return TreatmentHistory.objects.all()

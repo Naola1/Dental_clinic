@@ -8,6 +8,12 @@ from .serializers import AppointmentSerializer, AvailabilitySerializer, DoctorPr
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated, BasePermission
 from datetime import datetime
+from rest_framework.pagination import PageNumberPagination
+
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
 
 
 class IsDoctorOrReceptionistOrReadOnly(BasePermission):
@@ -27,6 +33,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['doctor', 'status']
     search_fields = ['patient__first_name', 'patient__last_name']
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         user = self.request.user
@@ -81,6 +88,7 @@ class AvailabilityViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     queryset = Availability.objects.all()
     serializer_class = AvailabilitySerializer
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         user = self.request.user
@@ -96,6 +104,7 @@ class DoctorViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = DoctorProfileSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['user__first_name', 'user__last_name', 'specialization']
+    pagination_class = StandardResultsSetPagination
 
     @action(detail=True, methods=['get'])
     def availability(self, request, pk=None):
