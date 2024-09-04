@@ -65,7 +65,7 @@ class DoctorProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DoctorProfile
-        fields = ['user', 'specialization', 'bio', 'profile_picture', 
+        fields = ['id', 'user', 'specialization', 'bio', 'profile_picture', 
                   'experience', 'qualification']
 
     def update(self, instance, validated_data):
