@@ -22,7 +22,7 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from django.contrib.sites.shortcuts import get_current_site
 from rest_framework_simplejwt.tokens import RefreshToken
-#from .utils import Util
+from .utils import Util
 from django.core.mail import send_mail
 from rest_framework_simplejwt.authentication import JWTAuthentication
 import jwt
@@ -56,14 +56,14 @@ class UserRegistrationAPIView(APIView):
                     "token": access_token  
                 }, status=status.HTTP_201_CREATED)
 
-                # current_site = get_current_site(request)
-                # relativeLink = reverse('email-verify')
-                # absurl = 'http://' + str(current_site) + relativeLink + "?token=" + str(refresh)
-                # email_body = 'Hi ' + new_user.username + ' Use the link below to verify your email \n' + absurl
+                current_site = get_current_site(request)
+                relativeLink = reverse('email-verify')
+                absurl = 'http://' + str(current_site) + relativeLink + "?token=" + str(refresh)
+                email_body = 'Hi ' + new_user.username + ' Use the link below to verify your email \n' + absurl
                 
-                # send_mail('Verify your email', email_body, "from@example.com", [new_user.email])
+                send_mail('Verify your email', email_body, "from@example.com", [new_user.email])
 
-                # response = Response(data, status=status.HTTP_201_CREATED)
+                response = Response(data, status=status.HTTP_201_CREATED)
                 
                 return response
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -118,7 +118,6 @@ class UserLoginAPIView(APIView):
             return Response({'error': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-
 class UserProfileView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
@@ -167,37 +166,6 @@ class UserProfileView(APIView):
         return Response({"message": "User account deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
     
 
-# class UserLogoutViewAPI(APIView):
-#     authentication_classes = [TokenAuthentication]
-#     permission_classes = [AllowAny]
-
-#     def get(self, request):
-#         refresh_token = request.COOKIES.get('refresh_token', None)
-#         access_token = request.COOKIES.get('access_token', None)
-
-#         if refresh_token and access_token:
-#             try:
-#                 refresh = RefreshToken(refresh_token)
-#                 refresh.blacklist()
-#                 response = Response()
-#                 response.delete_cookie('refresh_token')
-#                 response.delete_cookie('access_token')
-#                 response.data = {
-#                     'message': 'Logged out successfully.'
-#                 }
-#                 return response
-#             except:
-#                 response = Response()
-#                 response.data = {
-#                     'message': 'Something went wrong while logging out.'
-#                 }
-#                 return response
-
-#         response = Response()
-#         response.data = {
-#             'message': 'User is already logged out.'
-#         }
-#         return response
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
