@@ -29,4 +29,4 @@ class AvailabilitySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Availability
-        fields = ['id', 'doctor', 'day_of_week', 'start_time', 'end_time']
+        fields = ['id', 'doctor', 'day_of_week']
