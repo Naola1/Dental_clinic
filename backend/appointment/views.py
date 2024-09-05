@@ -143,16 +143,17 @@ class AppointmentBookingViewSet(viewsets.ViewSet):
             doctor = DoctorProfile.objects.get(pk=pk)
             appointment_date_str = request.data.get('appointment_date')
             
-            try:
-               appointment_date = datetime.strptime(appointment_date_str, '%Y-%m-%d %H:%M:%S')
-               print(appointment_date)
-            except ValueError:
-                return Response({"detail": "Invalid date format. Use 'YYYY-MM-DD HH:MM:SS'."}, status=status.HTTP_400_BAD_REQUEST)
+            # try:
+            #    appointment_date = datetime.strptime(appointment_date_str, '%Y-%m-%d %H:%M:%S')
+            #    print(appointment_date)
+            # except ValueError:
+            #     return Response({"detail": "Invalid date format. Use 'YYYY-MM-DD HH:MM:SS'."}, status=status.HTTP_400_BAD_REQUEST)
 
 
             availability = Availability.objects.filter(
                 doctor=doctor,
-                day_of_week=appointment_date.strftime('%A'),  
+                # day_of_week=appointment_date.strftime('%A'),  
+                day_of_week=appointment_date_str,  
                 # start_time__lte=appointment_date.time(),
                 # end_time__gte=appointment_date.time()
             ).first()
