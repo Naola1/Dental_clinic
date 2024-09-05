@@ -153,8 +153,8 @@ class AppointmentBookingViewSet(viewsets.ViewSet):
             availability = Availability.objects.filter(
                 doctor=doctor,
                 day_of_week=appointment_date.strftime('%A'),  
-                start_time__lte=appointment_date.time(),
-                end_time__gte=appointment_date.time()
+                # start_time__lte=appointment_date.time(),
+                # end_time__gte=appointment_date.time()
             ).first()
 
             if availability:
