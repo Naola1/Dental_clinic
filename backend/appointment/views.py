@@ -142,7 +142,23 @@ class AppointmentBookingViewSet(viewsets.ViewSet):
         try:
             doctor = DoctorProfile.objects.get(pk=pk)
             appointment_date_str = request.data.get('appointment_date')
+
+            appointment_data = {
+                'patient': request.user.id,
+                'doctor': doctor.id,
+                'appointment_date': appointment_date_str,
+                'status': 'Scheduled'
+            }
+
+            appointment_serializer = AppointmentSerializer(data=appointment_data)
+
+            if appointment_serializer.is_valid():
+                appointment_serializer.save()
+                return Response(appointment_serializer.data, status=status.HTTP_201_CREATED)
             
+            return Response(appointment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+
             # try:
             #    appointment_date = datetime.strptime(appointment_date_str, '%Y-%m-%d %H:%M:%S')
             #    print(appointment_date)
@@ -150,33 +166,32 @@ class AppointmentBookingViewSet(viewsets.ViewSet):
             #     return Response({"detail": "Invalid date format. Use 'YYYY-MM-DD HH:MM:SS'."}, status=status.HTTP_400_BAD_REQUEST)
 
 
-            availability = Availability.objects.filter(
-                doctor=doctor,
-                # day_of_week=appointment_date.strftime('%A'),  
-                day_of_week=appointment_date_str,  
-                # start_time__lte=appointment_date.time(),
-                # end_time__gte=appointment_date.time()
-            ).first()
+            # availability = Availability.objects.filter(
+            #     doctor=doctor,
+            #     day_of_week=appointment_date.strftime('%A'),  
+            #     # start_time__lte=appointment_date.time(),
+            #     # end_time__gte=appointment_date.time()
+            # ).first()
 
-            if availability:
+            # if availability:
             
-                appointment_count = Appointment.objects.filter(
-                doctor=doctor,
-                appointment_date__date=appointment_date.date()
-            ).count()    
-                if appointment_count >= availability.max_patients:
-                    return Response({"detail": "Doctor has reached the maximum number of patients for the day."}, status=status.HTTP_400_BAD_REQUEST)            
-                appointment_data = {
-                    'patient': request.user.id,
-                    'doctor': doctor.id,
-                    'appointment_date': appointment_date,
-                    'status': 'Scheduled'
-                }
-                appointment_serializer = AppointmentSerializer(data=appointment_data)
-                if appointment_serializer.is_valid():
-                    appointment_serializer.save()
-                    return Response(appointment_serializer.data, status=status.HTTP_201_CREATED)
-                return Response(appointment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            return Response({"detail": "Doctor is not available at the requested time."}, status=status.HTTP_400_BAD_REQUEST)
+            #     appointment_count = Appointment.objects.filter(
+            #     doctor=doctor,
+            #     appointment_date__date=appointment_date.date()
+            # ).count()    
+            #     if appointment_count >= availability.max_patients:
+            #         return Response({"detail": "Doctor has reached the maximum number of patients for the day."}, status=status.HTTP_400_BAD_REQUEST)            
+            #     appointment_data = {
+            #         'patient': request.user.id,
+            #         'doctor': doctor.id,
+            #         'appointment_date': appointment_date,
+            #         'status': 'Scheduled'
+            #     }
+            #     appointment_serializer = AppointmentSerializer(data=appointment_data)
+            #     if appointment_serializer.is_valid():
+            #         appointment_serializer.save()
+            #         return Response(appointment_serializer.data, status=status.HTTP_201_CREATED)
+            #     return Response(appointment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            # return Response({"detail": "Doctor is not available at the requested time."}, status=status.HTTP_400_BAD_REQUEST)
         except DoctorProfile.DoesNotExist:
             return Response({"detail": "Doctor not found."}, status=status.HTTP_404_NOT_FOUND)
