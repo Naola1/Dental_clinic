@@ -141,11 +141,10 @@ class AppointmentBookingViewSet(viewsets.ViewSet):
     def book_appointment(self, request, pk=None):
         try:
             doctor = DoctorProfile.objects.get(pk=pk)
-            appointment_date = request.data.get('appointment_date')
+            appointment_date_str = request.data.get('appointment_date')
             
             # try:
-            #    appointment_date = datetime.strptime(appointment_date_str, '%Y-%m-%d %H:%M:%S')
-            #    print(appointment_date)
+            appointment_date = datetime.strptime(appointment_date_str, '%d-%m-%y')
             # except ValueError:
             #     return Response({"detail": "Invalid date format. Use 'YYYY-MM-DD HH:MM:SS'."}, status=status.HTTP_400_BAD_REQUEST)
 
