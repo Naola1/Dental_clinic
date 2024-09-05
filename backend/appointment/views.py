@@ -141,6 +141,7 @@ class AppointmentBookingViewSet(viewsets.ViewSet):
     def book_appointment(self, request, pk=None):
         try:
             doctor = DoctorProfile.objects.get(pk=pk)
+            print(doctor)
             appointment_date_str = request.data.get('appointment_date')
             
             # try:
