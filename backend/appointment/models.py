@@ -34,12 +34,12 @@ class Availability(models.Model):
     ]
     doctor = models.ForeignKey('users.DoctorProfile', on_delete=models.CASCADE, related_name="availabilities")
     day_of_week = models.CharField(max_length=10, choices=DAY_OF_WEEK_CHOICES)
-    start_time = models.TimeField()
-    end_time = models.TimeField()
+    #start_time = models.TimeField()
+    #end_time = models.TimeField()
     max_patients = models.PositiveIntegerField(default=10)
 
     def __str__(self):
-        return f"{self.doctor.user.last_name}'s availability on {self.day_of_week} from {self.start_time} to {self.end_time}"
+        return f"{self.doctor.user.last_name}'s availability on {self.day_of_week}"
     
     class Meta:
-        ordering = ['day_of_week', 'start_time']
+        ordering = ['day_of_week']
