@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Appointment, Availability
 from users.models import User, DoctorProfile
-from .serializers import AppointmentSerializer, AvailabilitySerializer, DoctorProfileSerializer
+from .serializers import AppointmentSerializer, AvailabilitySerializer, DoctorProfileSerializer, BookingSerializer
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated, BasePermission
 from datetime import datetime
@@ -169,11 +169,11 @@ class AppointmentBookingViewSet(viewsets.ViewSet):
                     'appointment_date': appointment_date,
                     'status': 'Scheduled'
                 }
-                appointment_serializer = AppointmentSerializer(data=appointment_data)
-                if appointment_serializer.is_valid():
-                    appointment_serializer.save()
-                    return Response(appointment_serializer.data, status=status.HTTP_201_CREATED)
-                return Response(appointment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                Booking_serializer = BookingSerializer(data=appointment_data)
+                if Booking_serializer.is_valid():
+                    Booking_serializer.save()
+                    return Response(Booking_serializer.data, status=status.HTTP_201_CREATED)
+                return Response(Booking_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             return Response({"detail": "Doctor is not available at the requested time."}, status=status.HTTP_400_BAD_REQUEST)
         except DoctorProfile.DoesNotExist:
             return Response({"detail": "Doctor not found."}, status=status.HTTP_404_NOT_FOUND)
