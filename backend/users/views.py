@@ -5,7 +5,8 @@ from users.serializers import (
     EmailVerificationSerializer,
     DoctorProfileSerializer,
     PatientProfileSerializer,
-    ReceptionistProfileSerializer,  
+    ReceptionistProfileSerializer,
+    ChangePasswordSerializer,  
 )
 from rest_framework.views import APIView
 from rest_framework import views
@@ -167,37 +168,6 @@ class UserProfileView(APIView):
         return Response({"message": "User account deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
     
 
-# class UserLogoutViewAPI(APIView):
-#     authentication_classes = [TokenAuthentication]
-#     permission_classes = [AllowAny]
-
-#     def get(self, request):
-#         refresh_token = request.COOKIES.get('refresh_token', None)
-#         access_token = request.COOKIES.get('access_token', None)
-
-#         if refresh_token and access_token:
-#             try:
-#                 refresh = RefreshToken(refresh_token)
-#                 refresh.blacklist()
-#                 response = Response()
-#                 response.delete_cookie('refresh_token')
-#                 response.delete_cookie('access_token')
-#                 response.data = {
-#                     'message': 'Logged out successfully.'
-#                 }
-#                 return response
-#             except:
-#                 response = Response()
-#                 response.data = {
-#                     'message': 'Something went wrong while logging out.'
-#                 }
-#                 return response
-
-#         response = Response()
-#         response.data = {
-#             'message': 'User is already logged out.'
-#         }
-#         return response
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
@@ -216,3 +186,26 @@ class DoctorDetailAPIView(RetrieveAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     lookup_field = 'id'
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from django.contrib.auth import update_session_auth_hash
+from .serializers import ChangePasswordSerializer
+
+class ChangePasswordView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = ChangePasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            user = request.user
+            if user.check_password(serializer.data.get('old_password')):
+                user.set_password(serializer.data.get('new_password'))
+                user.save()
+                update_session_auth_hash(request, user)  
+                return Response({'message': 'Password changed successfully.'}, status=status.HTTP_200_OK)
+            return Response({'error': 'Incorrect old password.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
