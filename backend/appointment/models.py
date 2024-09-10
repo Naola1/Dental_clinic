@@ -11,7 +11,7 @@ class Appointment(models.Model):
     ]
     patient = models.ForeignKey(PatientProfile, on_delete=models.CASCADE, related_name="appointments_as_patient")
     doctor = models.ForeignKey(DoctorProfile, on_delete=models.CASCADE, related_name="appointments") 
-    appointment_date = models.DateTimeField()
+    appointment_date = models.DateField()
     status = models.CharField(max_length=20, choices=APPOINTMENT_STATUS_CHOICES, default='Scheduled')
     treatment = models.ForeignKey(Treatment, on_delete=models.SET_NULL, null=True)
 
