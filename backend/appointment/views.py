@@ -40,8 +40,12 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         if user.role == 'receptionist':
             return Appointment.objects.all()
         elif user.role == 'doctor':
-            return Appointment.objects.filter(doctor=user)
-        else:  
+            try:
+                doctor_profile = DoctorProfile.objects.get(user=user)
+                return Appointment.objects.filter(doctor=doctor_profile)
+            except DoctorProfile.DoesNotExist:
+                return Appointment.objects.none()  
+        else:
             return Appointment.objects.filter(patient=user)
 
     def create(self, request, *args, **kwargs):

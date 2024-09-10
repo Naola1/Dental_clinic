@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Appointment, Availability
-from users.models import User, DoctorProfile
+from users.models import User, DoctorProfile, PatientProfile
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -14,11 +14,16 @@ class DoctorProfileSerializer(serializers.ModelSerializer):
         model = DoctorProfile
         fields = ['id', 'user', 'specialization']
 
-class AppointmentSerializer(serializers.ModelSerializer):
-    patient = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-    #doctor = serializers.PrimaryKeyRelatedField(queryset=DoctorProfile.objects.all())
-    doctor = DoctorProfileSerializer(read_only=True)
+class PatientProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
 
+    class Meta:
+        model = PatientProfile
+        fields = ['id', 'user']
+
+class AppointmentSerializer(serializers.ModelSerializer):
+    patient = PatientProfileSerializer(read_only=True)
+    doctor = DoctorProfileSerializer(read_only=True)
 
     class Meta:
         model = Appointment
@@ -27,13 +32,10 @@ class AppointmentSerializer(serializers.ModelSerializer):
 class BookingSerializer(serializers.ModelSerializer):
     patient = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     doctor = serializers.PrimaryKeyRelatedField(queryset=DoctorProfile.objects.all())
-    # doctor = DoctorProfileSerializer(read_only=True)
-
 
     class Meta:
         model = Appointment
         fields = ['id', 'patient', 'doctor', 'appointment_date', 'status']
-
 
 class AvailabilitySerializer(serializers.ModelSerializer):
     doctor = serializers.PrimaryKeyRelatedField(queryset=DoctorProfile.objects.all(), required=False)
