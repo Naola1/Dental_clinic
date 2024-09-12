@@ -81,7 +81,7 @@ class User(AbstractBaseUser, PermissionsMixin):
                 PatientProfile.objects.create(user=self)
 
             elif self.role == 'receptionist' and not hasattr(self, 'receptionist_profile'):
-                ReceptionistProfile.objects.create(user=self)    
+                ReceptionistProfile.objects.create(user=self)     
 
 class DoctorProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='doctor_profile')

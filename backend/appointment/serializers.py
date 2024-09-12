@@ -30,7 +30,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
         fields = ['id', 'patient', 'doctor', 'appointment_date', 'status']
 
 class BookingSerializer(serializers.ModelSerializer):
-    patient = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    patient = serializers.PrimaryKeyRelatedField(queryset=PatientProfile.objects.all())
     doctor = serializers.PrimaryKeyRelatedField(queryset=DoctorProfile.objects.all())
 
     class Meta:

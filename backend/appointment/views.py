@@ -149,11 +149,10 @@ class AppointmentBookingViewSet(viewsets.ViewSet):
     def book_appointment(self, request, pk=None):
         try:
             doctor = DoctorProfile.objects.get(pk=pk)
-            print(doctor)
             appointment_date_str = request.data.get('appointment_date')
             
             # try:
-            appointment_date = datetime.strptime(appointment_date_str, '%d-%m-%Y')
+            appointment_date = datetime.strptime(appointment_date_str, '%d-%m-%Y').date()
             # except ValueError:
             #     return Response({"detail": "Invalid date format. Use 'YYYY-MM-DD HH:MM:SS'."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -167,7 +166,7 @@ class AppointmentBookingViewSet(viewsets.ViewSet):
             
                 appointment_count = Appointment.objects.filter(
                 doctor=doctor,
-                appointment_date__date=appointment_date.date()
+                appointment_date=appointment_date
             ).count()    
                 if appointment_count >= availability.max_patients:
                     return Response({"detail": "Doctor has reached the maximum number of patients for the day."}, status=status.HTTP_400_BAD_REQUEST)            
