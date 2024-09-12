@@ -49,7 +49,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             try:
                 patient_profile = PatientProfile.objects.get(user=user)
                 return Appointment.objects.filter(patient=patient_profile)
-            except DoctorProfile.DoesNotExist:
+            except PatientProfile.DoesNotExist:
                 return Appointment.objects.none()  
 
     def create(self, request, *args, **kwargs):
@@ -170,16 +170,20 @@ class AppointmentBookingViewSet(viewsets.ViewSet):
             ).count()    
                 if appointment_count >= availability.max_patients:
                     return Response({"detail": "Doctor has reached the maximum number of patients for the day."}, status=status.HTTP_400_BAD_REQUEST)            
+                try:
+                    patient_profile = PatientProfile.objects.get(user=request.user)
+                except PatientProfile.DoesNotExist:
+                    return Response({"detail": "Patient profile not found."}, status=status.HTTP_404_NOT_FOUND)
                 appointment_data = {
-                    'patient': request.user.id,
+                    'patient': patient_profile.id,
                     'doctor': doctor.id,
                     'appointment_date': appointment_date,
                     'status': 'Scheduled'
                 }
                 Booking_serializer = BookingSerializer(data=appointment_data)
                 if Booking_serializer.is_valid():
-                    Booking_serializer.save()
-                    return Response(Booking_serializer.data, status=status.HTTP_201_CREATED)
+                    appointment = Booking_serializer.save()
+                    return Response(AppointmentSerializer(appointment).data, status=status.HTTP_201_CREATED)
                 return Response(Booking_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             return Response({"detail": "Doctor is not available at the requested time."}, status=status.HTTP_400_BAD_REQUEST)
         except DoctorProfile.DoesNotExist:
