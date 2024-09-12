@@ -72,24 +72,60 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             return super().destroy(request, *args, **kwargs)
         return Response({"detail": "You do not have permission to delete appointments."}, status=status.HTTP_403_FORBIDDEN)
 
-    @action(detail=False, methods=['get'])
-    def filter_appointments(self, request):
-        doctor_id = request.query_params.get('doctor_id')
-        date = request.query_params.get('date')
-        speciality = request.query_params.get('speciality')
+    # @action(detail=False, methods=['get'])
+    # def filter_appointments(self, request):
+    #     doctor_id = request.query_params.get('doctor_id')
+    #     date = request.query_params.get('date')
+    #     speciality = request.query_params.get('speciality')
 
-        queryset = self.get_queryset()
+    #     queryset = self.get_queryset()
 
-        if doctor_id:
-            queryset = queryset.filter(doctor_id=doctor_id)
-        if date:
-            queryset = queryset.filter(appointment_date__date=date)
-        if speciality:
-            queryset = queryset.filter(doctor__doctor_profile__specialization=speciality)
+    #     if doctor_id:
+    #         queryset = queryset.filter(doctor_id=doctor_id)
+    #     if date:
+    #         queryset = queryset.filter(appointment_date__date=date)
+    #     if speciality:
+    #         queryset = queryset.filter(doctor__doctor_profile__specialization=speciality)
+
+    #     serializer = self.get_serializer(queryset, many=True)
+    #     return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], url_path='search')
+    def search_appointments(self, request):
+        user = request.user
+        search_query = request.query_params.get('query', '')
+
+        if user.role == 'doctor':
+           
+            queryset = Appointment.objects.filter(
+                patient__user__first_name__icontains=search_query
+            ) | Appointment.objects.filter(
+                patient__user__last_name__icontains=search_query
+            ) | Appointment.objects.filter(
+                patient__user__phone_number__icontains=search_query
+            )
+
+        elif user.role == 'receptionist':
+           
+            queryset = Appointment.objects.filter(
+                patient__user__first_name__icontains=search_query
+            ) | Appointment.objects.filter(
+                patient__user__last_name__icontains=search_query
+            ) | Appointment.objects.filter(
+                patient__user__phone_number__icontains=search_query
+            ) | Appointment.objects.filter(
+                doctor__user__first_name__icontains=search_query
+            ) | Appointment.objects.filter(
+                doctor__user__last_name__icontains=search_query
+            ) | Appointment.objects.filter(
+                doctor__user__phone_number__icontains=search_query
+            )
+
+        else:
+            return Response({"detail": "You do not have permission to search appointments."}, status=status.HTTP_403_FORBIDDEN)
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-    
 
 
     @action(detail=True, methods=['put'])

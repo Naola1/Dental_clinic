@@ -11,4 +11,5 @@ router.register(r'bookings', AppointmentBookingViewSet, basename='booking')
 # URL patterns
 urlpatterns = [
     path('', include(router.urls)), 
+     path('appointments/search/', AppointmentViewSet.as_view({'get': 'search_appointments'}), name='appointment-search'),
 ]
