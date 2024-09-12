@@ -89,6 +89,29 @@ class AppointmentViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+    
+
+
+    @action(detail=True, methods=['put'])
+    def change_status(self, request, pk=None):
+        user = request.user
+        if user.role != 'doctor':
+            return Response({"detail": "You do not have permission to change the appointment status."}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            appointment = self.get_object()
+            new_status = request.data.get('status')
+
+            if new_status not in ['Completed', 'Cancelled']:
+                return Response({"detail": "Invalid status."}, status=status.HTTP_400_BAD_REQUEST)
+
+            appointment.status = new_status
+            appointment.save()
+            return Response(AppointmentSerializer(appointment).data, status=status.HTTP_200_OK)
+
+        except Appointment.DoesNotExist:
+            return Response({"detail": "Appointment not found."}, status=status.HTTP_404_NOT_FOUND)
+
 
 
 class AvailabilityViewSet(viewsets.ModelViewSet):

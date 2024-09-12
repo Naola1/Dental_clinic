@@ -5,7 +5,8 @@ from .models import Treatment, TreatmentHistory
 from .serializers import ( 
     TreatmentHistorySerializer, 
     TreatmentHistoryCreateSerializer,
-    TreatmentHistoryReceptionistSerializer
+    TreatmentHistoryReceptionistSerializer,
+    TreatmentSerializer,
 )
 from django.db.models import Q
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -90,3 +91,8 @@ class SearchPatientHistoryView(APIView):
             return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
 
         return Response(serializer.data)
+
+class TreatmentListView(generics.ListAPIView):
+    queryset = Treatment.objects.all()
+    serializer_class = TreatmentSerializer
+    pagination_class = StandardResultsSetPagination
