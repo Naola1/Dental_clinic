@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Appointment, Availability
-from users.models import User, DoctorProfile
+from users.models import PatientProfile, User, DoctorProfile
 from .serializers import AppointmentSerializer, AvailabilitySerializer, DoctorProfileSerializer, BookingSerializer
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated, BasePermission
@@ -39,14 +39,18 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if user.role == 'receptionist':
             return Appointment.objects.all()
-        elif user.role == 'doctor':
+        if user.role == 'doctor':
             try:
                 doctor_profile = DoctorProfile.objects.get(user=user)
                 return Appointment.objects.filter(doctor=doctor_profile)
             except DoctorProfile.DoesNotExist:
                 return Appointment.objects.none()  
-        else:
-            return Appointment.objects.filter(patient=user)
+        if user.role == "patient":
+            try:
+                patient_profile = PatientProfile.objects.get(user=user)
+                return Appointment.objects.filter(patient=patient_profile)
+            except DoctorProfile.DoesNotExist:
+                return Appointment.objects.none()  
 
     def create(self, request, *args, **kwargs):
         user = request.user
