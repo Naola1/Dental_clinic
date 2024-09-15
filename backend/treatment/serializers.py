@@ -27,7 +27,6 @@ class TreatmentHistoryCreateSerializer(serializers.ModelSerializer):
         fields = ['patient', 'treatment', 'treatment_date', 'description', 'follow_up_date']
 
     def create(self, validated_data):
-        # Automatically set the doctor to the current user
         validated_data['doctor'] = self.context['request'].user
         return super().create(validated_data)
 
