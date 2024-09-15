@@ -1,6 +1,6 @@
-# DentalCare Management System
+# Dental Clinic Management System
 
-**Making it easy for you to book appointments and keep track of your dental health.**
+**Effortless Management for Exceptional Dental Clinics.**
 
 ## Table of Contents
 
@@ -15,12 +15,11 @@
 
 ## Project Overview
 
-DentalCare Management System is designed to facilitate appointment scheduling, patient record management, and efficient clinic operations. The system is flexible for use by clinics of varying sizes and helps streamline communication between patients, doctors, and staff.
+Dental Clinic Management System is designed to facilitate appointment scheduling, patient record management, and efficient clinic operations. The system is flexible for use by clinics of varying sizes and helps streamline communication between patients, doctors, and staff.
 
 ## Technologies Used
 
 - **Backend**: Django, Django REST Framework
-- **Frontend**: React (TypeScript)
 - **Authentication**: JWT (JSON Web Tokens)
 - **Database**: PostgreSQL
 - **Deployment**: Render
@@ -29,7 +28,7 @@ DentalCare Management System is designed to facilitate appointment scheduling, p
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/dentalcare-management.git
+   git clone https://github.com/Naola1/dental_clinic-backend
    cd dentalcare-management
    ```
 2. Create a virtual environment:
@@ -46,63 +45,126 @@ DentalCare Management System is designed to facilitate appointment scheduling, p
 6. Start the server:
    python manage.py runserver
 
-API Documentation
-You can view the auto-generated API documentation using drf-yasg. After starting the server, navigate to:
-http://localhost:8000/swagger/
+## API Endpoints
 
-Authentication APIs
-User Registration: /api/users/register/
+1. **User Registration and Authentication**
+   Register
+   POST /api/user/register/
+   Registers a new user.
 
-Registers a new patient by default.
-Fields: email, username, password
+Login
+POST /api/user/login/
+Authenticates a user and returns a JWT token.
 
-User Login: /api/users/login/
+Token Refresh
+POST /api/token/refresh/
+Refreshes an existing JWT token.
 
-Logs in a user using email and password.
-Returns JWT access token.
+User Profile
+GET /api/user/profile/
+Retrieves the profile information of the logged-in user.
 
-User APIs
-User Profile: /api/users/profile/
-GET: Retrieves the logged-in user's profile.
-PUT: Updates profile information based on user role.
-DELETE: Deletes the user account.
-Treatment APIs
-Doctor Treatment History: /api/treatments/doctor-history/
+Change Password
+POST /api/change-password/
+Allows the logged-in user to change their password.
 
-GET: Retrieves the treatment history for a doctor.
-POST: Creates new treatment history (Doctor only).
-Patient Treatment History: /api/treatments/patient-history/
+Password Reset (via Email)
+POST /api/password_reset/
+Sends a password reset link to the user's email.
 
-GET: Retrieves treatment history for a logged-in patient.
-Search API
-Search Patient History: /api/treatments/search-history/
-GET: Search patient's treatment history (Doctor/Receptionist).
-Usage
+Password Reset Confirm
+POST /api/password_reset/confirm/
+Confirms the password reset with the token sent via email.
+
+2. **Patient Endpoints**
+   Patients can view their treatment history, search for available doctors, and book appointments.
+
+Treatment History
+GET /api/treatment-history/patient/
+Retrieves the logged-in patient's treatment history.
+
+Appointments
+GET /api/appointments/
+Retrieves appointment for the logged-in patient.
+
+    POST /api/appointments/book/<doctor_id>/
+    Books an appointment with the specified doctor for the logged-in patient.
+
+Doctor Search
+GET /api/doctors/search/?specialty=<specialty>&date=<date>
+Searches for doctors based on specialty and availability date.
+
+3. **Doctor Endpoints**
+   Doctors can manage their availability, view and update treatment histories, and search for patients.
+
+Treatment History
+GET /api/treatment-history/doctor/
+Retrieves treatment histories for patients that the logged-in doctor is treating.
+
+    POST /api/treatment-history/doctor/
+    Creates a new treatment history entry for a patient.
+
+    GET/PUT/DELETE /api/treatment-history/doctor/<id>/
+    Retrieves, updates, or deletes a treatment history entry for a specific patient.
+
+Availability
+GET /api/availability/
+Retrieves the availability of the logged-in doctor.
+
+Appointments
+GET /api/appointments/
+Retrieves all appointments scheduled with the logged-in doctor.
+
+    PUT /api/appointments/change-status/<id>/
+    Changes the status of an appointment (e.g., Completed, Cancelled).
+
+    GET /api/appointments/search/?query=<search_query>
+    Searches for patient appointments by first name, last name, or phone number.
+
+4. **Receptionist Endpoints**
+   Receptionists can view, manage, and search all appointments.
+
+Appointments
+GET /api/appointments/
+Retrieves all patient appointments.
+
+    GET /api/appointments/search/?query=<search_query>
+    Searches appointments by patient or doctor details (first name, last name, phone number).
+
+5. **General Endpoints**
+   Doctors
+   GET /api/doctors/
+   Retrieves a list of all doctors.
+
+   GET /api/doctors/<id>/availability/
+   Retrieves availability for a specific doctor.
+
+## Usage
+
 To test the application:
 
 1. Create a User: Register a patient through /api/users/register/.
 2. Login: Use the credentials to log in and receive an authentication token.
 3. Access User Profile: Use the token to access the user's profile and manage treatments.
 
-Project Structure
-├── backend/
-│ ├── appointments/ # Handles appointment scheduling and doctor availability
-│ ├── Users/ # Manages user roles, profiles (patient, doctor, receptionist)
-│ ├── treatments/ # Manages treatment types, history
-│ ├── notifications/ # Manages notifications for users
-│ └── manage.py # Django management file
-├── frontend/ # React app for the user interface
-│ ├── src/
-│ └── package.json
-├── .env # Environment variables for database and JWT settings
-├── Dockerfile # Docker setup for containerization
-├── requirements.txt # Python dependencies
-└── README.md # This file
+## Project Structure
 
-Contributing
+    ├── backend/
+    │ ├── appointments/ # Handles appointment scheduling and doctor availability
+    │ ├── Users/ # Manages user roles, profiles (patient, doctor, receptionist)
+    │ ├── treatments/ # Manages treatment types, history
+    │ ├── notifications/ # Manages notifications for users
+    │ └── manage.py # Django management file
+
+## Contributing
+
 Contributions are welcome! To contribute:
 
 Fork the repository.
 Create a new feature branch.
 Commit your changes.
 Submit a pull request.
+
+## Licence
+
+MIT License
