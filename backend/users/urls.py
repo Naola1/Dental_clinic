@@ -8,14 +8,10 @@ from users.views import (
     ChangePasswordView
     
     
-    
-	#UserLogoutViewAPI,
-    #VerifyEmail,
 )
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
-    TokenVerifyView
 )
 
 urlpatterns = [
@@ -28,6 +24,4 @@ urlpatterns = [
     path('doctors/<int:id>/', DoctorDetailAPIView.as_view(), name='doctor-detail'),
     path('change-password/', ChangePasswordView.as_view(), name='change_password'),
     path('password_reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),
-	#path('user/logout/', UserLogoutViewAPI.as_view()),
-    #path('email-verify/', VerifyEmail.as_view(), name="email-verify"),
 ]

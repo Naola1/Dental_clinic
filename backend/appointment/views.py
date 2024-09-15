@@ -1,7 +1,6 @@
 from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django_filters.rest_framework import DjangoFilterBackend
 from .models import Appointment, Availability
 from users.models import PatientProfile, User, DoctorProfile
 from .serializers import AppointmentSerializer, AvailabilitySerializer, DoctorProfileSerializer, BookingSerializer
@@ -30,7 +29,6 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsDoctorOrReceptionistOrReadOnly]
     queryset = Appointment.objects.all()
     serializer_class = AppointmentSerializer
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['doctor', 'status']
     search_fields = ['patient__first_name', 'patient__last_name']
     pagination_class = StandardResultsSetPagination
@@ -71,24 +69,6 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         if user.role == 'doctor' or user.role == 'receptionist':
             return super().destroy(request, *args, **kwargs)
         return Response({"detail": "You do not have permission to delete appointments."}, status=status.HTTP_403_FORBIDDEN)
-
-    # @action(detail=False, methods=['get'])
-    # def filter_appointments(self, request):
-    #     doctor_id = request.query_params.get('doctor_id')
-    #     date = request.query_params.get('date')
-    #     speciality = request.query_params.get('speciality')
-
-    #     queryset = self.get_queryset()
-
-    #     if doctor_id:
-    #         queryset = queryset.filter(doctor_id=doctor_id)
-    #     if date:
-    #         queryset = queryset.filter(appointment_date__date=date)
-    #     if speciality:
-    #         queryset = queryset.filter(doctor__doctor_profile__specialization=speciality)
-
-    #     serializer = self.get_serializer(queryset, many=True)
-    #     return Response(serializer.data)
 
     @action(detail=False, methods=['get'], url_path='search')
     def search_appointments(self, request):
@@ -147,7 +127,6 @@ class AppointmentViewSet(viewsets.ModelViewSet):
 
         except Appointment.DoesNotExist:
             return Response({"detail": "Appointment not found."}, status=status.HTTP_404_NOT_FOUND)
-
 
 
 class AvailabilityViewSet(viewsets.ModelViewSet):
@@ -210,12 +189,7 @@ class AppointmentBookingViewSet(viewsets.ViewSet):
             doctor = DoctorProfile.objects.get(pk=pk)
             appointment_date_str = request.data.get('appointment_date')
             
-            # try:
             appointment_date = datetime.strptime(appointment_date_str, '%d-%m-%Y').date()
-            # except ValueError:
-            #     return Response({"detail": "Invalid date format. Use 'YYYY-MM-DD HH:MM:SS'."}, status=status.HTTP_400_BAD_REQUEST)
-
-
             availability = Availability.objects.filter(
                 doctor=doctor,
                 day_of_week=appointment_date.strftime('%A'),  
