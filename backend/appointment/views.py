@@ -9,12 +9,13 @@ from rest_framework.permissions import IsAuthenticated, BasePermission
 from datetime import datetime
 from rest_framework.pagination import PageNumberPagination
 
+# Custom pagination class for paginating large result sets.
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 100
 
-
+# Custom permission class to restrict access based on user role.
 class IsDoctorOrReceptionistOrReadOnly(BasePermission):
     def has_permission(self, request, view):
         if request.user.role == 'patient' and request.method in ['GET']:
@@ -23,7 +24,7 @@ class IsDoctorOrReceptionistOrReadOnly(BasePermission):
             return True
         return False
 
-
+# ViewSet for managing Appointment objects
 class AppointmentViewSet(viewsets.ModelViewSet):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated, IsDoctorOrReceptionistOrReadOnly]
@@ -33,6 +34,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     search_fields = ['patient__first_name', 'patient__last_name']
     pagination_class = StandardResultsSetPagination
 
+    # Customize the queryset based on the user's role
     def get_queryset(self):
         user = self.request.user
         if user.role == 'receptionist':
@@ -50,12 +52,14 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             except PatientProfile.DoesNotExist:
                 return Appointment.objects.none()  
 
+    # Only doctors and receptionists are allowed to create appointments
     def create(self, request, *args, **kwargs):
         user = request.user
         if user.role == 'doctor' or user.role == 'receptionist':
             return super().create(request, *args, **kwargs)
         return Response({"detail": "You do not have permission to create appointments."}, status=status.HTTP_403_FORBIDDEN)
 
+    # Only doctors and receptionists are allowed to update appointments
     def update(self, request, *args, **kwargs):
         print("am in update")
         user = request.user
@@ -63,20 +67,22 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         if user.role == 'doctor' or user.role == 'receptionist':
             return super().update(request, *args, **kwargs)
         return Response({"detail": "You do not have permission to update appointments."}, status=status.HTTP_403_FORBIDDEN)
-
+    
+     # Only doctors and receptionists are allowed to delete appointments
     def destroy(self, request, *args, **kwargs):
         user = request.user
         if user.role == 'doctor' or user.role == 'receptionist':
             return super().destroy(request, *args, **kwargs)
         return Response({"detail": "You do not have permission to delete appointments."}, status=status.HTTP_403_FORBIDDEN)
 
+     # Custom action for searching appointments by patient or doctor details
     @action(detail=False, methods=['get'], url_path='search')
     def search_appointments(self, request):
         user = request.user
         search_query = request.query_params.get('query', '')
 
         if user.role == 'doctor':
-           
+           # Allow doctors to search by patient details
             queryset = Appointment.objects.filter(
                 patient__user__first_name__icontains=search_query
             ) | Appointment.objects.filter(
@@ -86,7 +92,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             )
 
         elif user.role == 'receptionist':
-           
+            # Allow receptionists to search by both patient and doctor details
             queryset = Appointment.objects.filter(
                 patient__user__first_name__icontains=search_query
             ) | Appointment.objects.filter(
@@ -107,7 +113,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-
+    # Action for doctors to change the status of an appointment
     @action(detail=True, methods=['put'])
     def change_status(self, request, pk=None):
         user = request.user
@@ -128,7 +134,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         except Appointment.DoesNotExist:
             return Response({"detail": "Appointment not found."}, status=status.HTTP_404_NOT_FOUND)
 
-
+# ViewSet for managing doctor availability
 class AvailabilityViewSet(viewsets.ModelViewSet):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
@@ -136,13 +142,14 @@ class AvailabilityViewSet(viewsets.ModelViewSet):
     serializer_class = AvailabilitySerializer
     pagination_class = StandardResultsSetPagination
 
+    # Doctors can only view their own availability
     def get_queryset(self):
         user = self.request.user
         if user.role == 'doctor':
             return Availability.objects.filter(doctor=user.doctor_profile)
         return Availability.objects.all()
 
-
+# ViewSet for managing Doctor profiles
 class DoctorViewSet(viewsets.ReadOnlyModelViewSet):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
@@ -152,6 +159,7 @@ class DoctorViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ['user__first_name', 'user__last_name', 'specialization']
     pagination_class = StandardResultsSetPagination
 
+    # Custom action for retrieving doctor's availability
     @action(detail=True, methods=['get'])
     def availability(self, request, pk=None):
         doctor = self.get_object()
@@ -159,11 +167,12 @@ class DoctorViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = AvailabilitySerializer(availabilities, many=True)
         return Response(serializer.data)
 
-
+# ViewSet for handling appointment bookings
 class AppointmentBookingViewSet(viewsets.ViewSet):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
+    # Action to search doctors by specialty and availability
     @action(detail=False, methods=['get'])
     def search_doctors(self, request):
         specialty = request.query_params.get('specialty')
@@ -182,7 +191,7 @@ class AppointmentBookingViewSet(viewsets.ViewSet):
 
         return Response(available_doctors_list)
 
-
+    # Action to book an appointment with a doctor
     @action(detail=True, methods=['post'])
     def book_appointment(self, request, pk=None):
         try:
@@ -196,7 +205,7 @@ class AppointmentBookingViewSet(viewsets.ViewSet):
             ).first()
         
             if availability:
-            
+                # Check if the doctor has reached the maximum number of patients for the day
                 appointment_count = Appointment.objects.filter(
                 doctor=doctor,
                 appointment_date=appointment_date

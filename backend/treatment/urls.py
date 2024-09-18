@@ -7,7 +7,7 @@ from .views import (
     SearchPatientHistoryView,
     TreatmentListView,
 )
-
+# URL patterns for the treatment history and related views
 urlpatterns = [
     path('patient/history/', PatientTreatmentHistoryView.as_view(), name='patient-treatment-history'),
     path('doctor/history/', DoctorTreatmentHistoryView.as_view(), name='doctor-treatment-history'),

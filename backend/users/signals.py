@@ -3,11 +3,13 @@ from django.dispatch import receiver
 from django.conf import settings
 from .utils import Util
 
+# Signal handler for the password reset token creation
 @receiver(reset_password_token_created)
 def password_reset_token_created(sender, instance, reset_password_token, *args, **kwargs):
+    # URL for the frontend where the user will reset their password
     reset_url = f"https://dental-clinic-frontend-chi.vercel.app/reset-password?token={reset_password_token.key}"
     
-    # Modern email design
+    # HTML email body content
     email_body = f"""
     <!DOCTYPE html>
     <html lang="en">
@@ -86,5 +88,5 @@ def password_reset_token_created(sender, instance, reset_password_token, *args, 
         'to_email': reset_password_token.user.email,
         
     }
-
+     # Send the email using the utility function
     Util.send_email(email_data)
