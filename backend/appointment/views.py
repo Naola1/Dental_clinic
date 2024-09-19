@@ -36,19 +36,22 @@ class AppointmentViewSet(viewsets.ModelViewSet):
 
     # Customize the queryset based on the user's role
     def get_queryset(self):
+
         user = self.request.user
+        base_queryset = Appointment.objects.filter(status='Scheduled')
+
         if user.role == 'receptionist':
-            return Appointment.objects.all()
+            return base_queryset
         if user.role == 'doctor':
             try:
                 doctor_profile = DoctorProfile.objects.get(user=user)
-                return Appointment.objects.filter(doctor=doctor_profile)
+                return base_queryset.filter(doctor=doctor_profile)
             except DoctorProfile.DoesNotExist:
                 return Appointment.objects.none()  
         if user.role == "patient":
             try:
                 patient_profile = PatientProfile.objects.get(user=user)
-                return Appointment.objects.filter(patient=patient_profile)
+                return base_queryset.filter(patient=patient_profile)
             except PatientProfile.DoesNotExist:
                 return Appointment.objects.none()  
 

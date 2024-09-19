@@ -21,7 +21,7 @@ class TreatmentHistory(models.Model):
 
     # String representation of the TreatmentHistory model
     def __str__(self):
-        return f"Treatment on {self.treatment_date} by Dr. {self.doctor.doctor_profile.specialization}"
+        return f"Treatment on {self.treatment_date} by Dr. {self.doctor.first_name}"
     
     # Meta class to order treatment histories by treatment date in descending order
     class Meta:
