@@ -96,6 +96,7 @@ class UserProfileView(APIView):
     def get(self, request):
         # Get the user and determine their role
         user = request.user
+
         # Fetch and serialize the appropriate profile based on user role
         if user.role == 'doctor':
             try:
@@ -111,17 +112,14 @@ class UserProfileView(APIView):
             serializer = PatientProfileSerializer(profile)
         elif user.role == 'receptionist':
             try:
-               profile = user.receptionist_profile
+                profile = user.receptionist_profile
             except ReceptionistProfile.DoesNotExist:
                 return Response({"error": "Receptionist profile does not exist."}, status=status.HTTP_404_NOT_FOUND)
             serializer = ReceptionistProfileSerializer(profile)
         else:
             return Response({'error': 'Invalid user role.'}, status=status.HTTP_400_BAD_REQUEST)
-        # If the serializer is valid, return the serialized data
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(serializer.data)
 
     def put(self, request):
         user = request.user
