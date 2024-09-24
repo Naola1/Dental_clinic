@@ -12,16 +12,20 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv, dotenv_values
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-rwbv7(e12j6kabw(4*9+bwur*k7rts$ynj6z8#80t0-=faz7)g'
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -183,9 +187,7 @@ SIMPLE_JWT = {
 }
 
 
-import os
-from dotenv import load_dotenv, dotenv_values
-load_dotenv()
+
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
